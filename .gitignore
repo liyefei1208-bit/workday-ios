@@ -1,0 +1,10 @@
+.DS_Store
+build/
+# Anchored: an unanchored `verify/` also matches Tools/Verify on a
+# case-insensitive filesystem, which would drop the harness source.
+/verify/
+*.xcodeproj
+*.xcworkspace
+dist/
+# Local tooling state, not part of the project.
+.omc/

@@ -1,0 +1,124 @@
+name: Workday
+options:
+  bundleIdPrefix: com.liyefei.workdaywidget
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+    SWIFT_EMIT_LOC_STRINGS: YES
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+
+targets:
+  Workday:
+    type: application
+    platform: iOS
+    sources:
+      - path: App
+      - path: Shared
+    dependencies:
+      - target: WorkdayWidgetExtension
+        embed: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.liyefei.workdaywidget.ios
+        PRODUCT_NAME: 工作日
+        INFOPLIST_FILE: App/Info.plist
+        CODE_SIGN_ENTITLEMENTS: App/Workday.entitlements
+        TARGETED_DEVICE_FAMILY: "1,2"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        GENERATE_INFOPLIST_FILE: NO
+
+  WorkdayWidgetExtension:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Widget
+      - path: Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.liyefei.workdaywidget.ios.widget
+        PRODUCT_NAME: WorkdayWidgetExtension
+        INFOPLIST_FILE: Widget/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Widget/WorkdayWidget.entitlements
+        TARGETED_DEVICE_FAMILY: "1,2"
+        GENERATE_INFOPLIST_FILE: NO
+        SKIP_INSTALL: YES
+    dependencies:
+      - sdk: WidgetKit.framework
+      - sdk: SwiftUI.framework
+
+  # Dev-only. Drives the simulator through the Dynamic Island, Notification
+  # Center, and the app's own screens. Not shipped.
+  WorkdayUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: UITests
+    dependencies:
+      - target: Workday
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.liyefei.workdaywidget.ios.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: Workday
+
+  # Dev-only. Renders the shipping widget / Live Activity views at real sizes
+  # for an arbitrary time, covering the phases the simulator clock can't reach.
+  WorkdayVerify:
+    type: application
+    platform: iOS
+    sources:
+      - path: Tools/Verify
+      - path: Shared
+      - path: Widget
+        excludes:
+          # Its @main would collide with the harness's own entry point.
+          - WorkdayWidgetBundle.swift
+          # Picking these up makes the harness inherit the extension's
+          # Info.plist — including NSExtensionPointIdentifier, which would
+          # declare this app to be a widget extension.
+          - Info.plist
+          - WorkdayWidget.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.liyefei.workdaywidget.ios.verify
+        PRODUCT_NAME: WorkdayVerify
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: WorkdayVerify
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        TARGETED_DEVICE_FAMILY: "1,2"
+    dependencies:
+      - sdk: WidgetKit.framework
+      - sdk: ActivityKit.framework
+      - sdk: SwiftUI.framework
+
+schemes:
+  Workday:
+    build:
+      targets:
+        Workday: all
+        WorkdayWidgetExtension: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - WorkdayUITests
+    archive:
+      config: Release
+
+  WorkdayVerify:
+    build:
+      targets:
+        WorkdayVerify: all
+    run:
+      config: Debug
